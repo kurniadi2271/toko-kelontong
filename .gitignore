@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment secrets — JANGAN PERNAH commit file .env asli
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Vercel
+.vercel
+
+# Database dump lokal (jika ada)
+*.sql.bak

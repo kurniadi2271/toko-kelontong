@@ -1,0 +1,43 @@
+<div class="space-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-500 font-medium">Total Omset Hari Ini</p>
+                <h3 id="dash-total-omset" class="text-xl font-bold text-gray-800 mt-1">Rp 0</h3>
+            </div>
+            <div class="p-3 bg-green-50 text-green-600 rounded-xl"><i class="fa-solid fa-wallet text-xl"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-500 font-medium">Total Laba Bersih Hari Ini</p>
+                <h3 id="dash-total-laba" class="text-xl font-bold text-sage-600 mt-1">Rp 0</h3>
+            </div>
+            <div class="p-3 bg-sage-50 text-sage-600 rounded-xl"><i class="fa-solid fa-chart-pie text-xl"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-500 font-medium">Total Transaksi Hari Ini</p>
+                <h3 id="dash-total-tx" class="text-xl font-bold text-gray-800 mt-1">0</h3>
+            </div>
+            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl"><i class="fa-solid fa-receipt text-xl"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-500 font-medium">Stok Menipis</p>
+                <h3 id="dash-low-stock" class="text-xl font-bold text-amber-600 mt-1">0 Produk</h3>
+            </div>
+            <div class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i class="fa-solid fa-triangle-exclamation text-xl"></i></div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+            <h3 class="font-bold text-gray-800 text-sm mb-4">Grafik Tren Penjualan &amp; Laba (7 Hari Terakhir)</h3>
+            <div class="h-64 relative"><canvas id="chart-sales-trend"></canvas></div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+            <h3 class="font-bold text-gray-800 text-sm mb-4">Proporsi Penjualan Kategori (Hari Ini)</h3>
+            <div class="h-64 relative flex justify-center items-center"><canvas id="chart-category-pie"></canvas></div>
+        </div>
+    </div>
+</div>

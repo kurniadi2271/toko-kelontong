@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Kasir & Manajemen Toko</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: {
+                sage: { 50:'#f2f6f3',100:'#e1ebe4',200:'#c5d8cb',500:'#588157',600:'#3a5a40',700:'#344e41',800:'#283b32',900:'#1e2d26' },
+                wood: { 100:'#f7f3ee',200:'#ebdccb',500:'#bc8a5f',700:'#8c5e34' }
+            } } }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        @media print {
+            body * { visibility: hidden; }
+            #printable-receipt, #printable-receipt * { visibility: visible; }
+            #printable-receipt { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Komponen dimuat dinamis oleh js/loader.js -->
+    <div id="component-header"></div>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
+        <div id="component-kasir"></div>
+
+        <div id="view-admin" class="hidden space-y-6">
+            <div id="component-admin-nav"></div>
+            <div id="admin-tab-dashboard"><div id="component-dashboard"></div></div>
+            <div id="admin-tab-master-barang" class="hidden"><div id="component-master-barang"></div></div>
+            <div id="admin-tab-stok-barang" class="hidden"><div id="component-stok-barang"></div></div>
+            <div id="admin-tab-laporan" class="hidden"><div id="component-laporan"></div></div>
+            <div id="admin-tab-pengaturan" class="hidden"><div id="component-pengaturan"></div></div>
+        </div>
+    </main>
+
+    <div id="component-modals"></div>
+
+    <!-- Konfigurasi & infrastruktur -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/loader.js"></script>
+
+    <!-- Modul per halaman -->
+    <script src="js/pages/auth.js"></script>
+    <script src="js/pages/kasir.js"></script>
+    <script src="js/pages/dashboard.js"></script>
+    <script src="js/pages/masterBarang.js"></script>
+    <script src="js/pages/stokBarang.js"></script>
+    <script src="js/pages/laporan.js"></script>
+    <script src="js/pages/settings.js"></script>
+
+    <!-- Bootstrap aplikasi -->
+    <script src="js/main.js"></script>
+</body>
+</html>
