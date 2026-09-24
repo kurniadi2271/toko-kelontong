@@ -15,5 +15,5 @@
  * di bawah, commit, push) agar frontend di Vercel tahu alamat backend yang baru.
  */
 window.APP_CONFIG = {
-  API_BASE_URL: 'https://asri-kasir-api.loca.lt',
+  API_BASE_URL: 'https://asri-kasir-api.loca.lt/api',
 };
