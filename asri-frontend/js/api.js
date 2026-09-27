@@ -79,6 +79,7 @@ const api = {
     update: (id, payload) => request(`/products/${id}`, { method: 'PUT', body: payload }),
     restock: (id, qty) => request(`/products/${id}/restock`, { method: 'PATCH', body: { qty } }),
     remove: (id) => request(`/products/${id}`, { method: 'DELETE' }),
+    movements: (id) => request(`/products/${id}/movements`),
   },
 
   // ---------- TRANSACTIONS ----------
@@ -91,11 +92,14 @@ const api = {
       const qs = params.toString();
       return request(`/transactions${qs ? `?${qs}` : ''}`);
     },
+    // Riwayat transaksi milik kasir yang sedang login saja.
+    mine: () => request('/transactions/me'),
   },
 
   // ---------- DASHBOARD ----------
   dashboard: {
     stats: () => request('/dashboard/stats'),
+    kasirStats: () => request('/dashboard/kasir-stats'),
     downloadReport: async (startDate, endDate, format) => {
       const blob = await request(
         `/dashboard/report?startDate=${startDate}&endDate=${endDate}&format=${format}`,

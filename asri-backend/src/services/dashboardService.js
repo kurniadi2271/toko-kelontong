@@ -54,10 +54,28 @@ async function getReportRows(startDate, endDate) {
   return rows;
 }
 
+/**
+ * Statistik milik SATU kasir saja, untuk hari ini. SENGAJA tidak menyertakan
+ * HPP/laba (net_profit) — itu data sensitif milik pemilik toko. Kasir hanya
+ * perlu tahu berapa yang sudah dia jual & berapa transaksi, bukan margin.
+ */
+async function getCashierStatsToday(cashierId) {
+  const { rows } = await query(
+    `SELECT
+       COALESCE(SUM(grand_total), 0) AS total_omset,
+       COUNT(*)                       AS total_transaksi
+     FROM transactions
+    WHERE status = 'completed' AND cashier_id = $1 AND created_at::date = CURRENT_DATE`,
+    [cashierId]
+  );
+  return rows[0];
+}
+
 module.exports = {
   getTodaySummary,
   getSevenDayTrend,
   getCategoryProportionToday,
   getLowStockCount,
   getReportRows,
+  getCashierStatsToday,
 };

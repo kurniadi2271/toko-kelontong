@@ -12,8 +12,9 @@
 
         <div class="flex items-center space-x-4">
             <div class="bg-sage-800 p-1 rounded-xl flex items-center border border-sage-600">
-                <button id="nav-btn-kasir" onclick="switchRole('kasir')" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-2 bg-sage-500 text-white shadow">
+                <button id="nav-btn-kasir" onclick="handleKasirNavClick()" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-2 text-sage-200 hover:text-white">
                     <i class="fa-solid fa-cash-register"></i> Kasir (POS)
+                    <span id="kasir-lock-icon" class="text-xs"><i class="fa-solid fa-lock text-yellow-400"></i></span>
                 </button>
                 <button id="nav-btn-admin" onclick="handleAdminNavClick()" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-2 text-sage-200 hover:text-white">
                     <i class="fa-solid fa-user-shield"></i> Admin Panel

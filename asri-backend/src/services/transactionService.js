@@ -1,5 +1,6 @@
 const { getClient, query } = require('../config/db');
 const { generateTxCode } = require('../utils/generateTxCode');
+const stockMovementService = require('./stockMovementService');
 
 /**
  * Menjalankan seluruh proses checkout dalam satu database transaction:
@@ -50,6 +51,7 @@ async function checkout({ items, discountPct, paymentMethod, cashReceived, cashi
       detailRows.push({
         productId: product.id, name: product.name, barcode: product.barcode, unit: product.unit,
         qty, unitPrice: product.sell_price, unitCost: product.cost_price, lineSubtotal, lineHpp,
+        stockBefore: product.stock, stockAfter: product.stock - qty,
       });
 
       await client.query('UPDATE products SET stock = stock - $1 WHERE id = $2', [qty, product.id]);
@@ -91,6 +93,19 @@ async function checkout({ items, discountPct, paymentMethod, cashReceived, cashi
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
         [transaction.id, d.productId, d.name, d.barcode, d.unit, d.qty, d.unitPrice, d.unitCost, d.lineSubtotal, d.lineHpp]
       );
+
+      // Audit trail: catat SIAPA (cashierId) mengurangi stok produk APA,
+      // tertaut ke transaksi ini. Dilakukan di dalam transaction yang sama
+      // agar ikut ROLLBACK bila ada kegagalan di langkah lain.
+      await stockMovementService.recordMovement(client, {
+        productId: d.productId,
+        userId: cashierId,
+        movementType: 'SALE',
+        qtyChange: -d.qty,
+        stockBefore: d.stockBefore,
+        stockAfter: d.stockAfter,
+        referenceTxId: transaction.id,
+      });
     }
 
     await client.query('COMMIT');
@@ -143,4 +158,23 @@ async function getTransactionById(id) {
   return { ...transaction, items };
 }
 
-module.exports = { checkout, listTransactions, getTransactionById };
+/**
+ * Riwayat transaksi milik SATU kasir saja (dirinya sendiri). Beda dari
+ * listTransactions() yang admin-only dan melihat semua kasir — endpoint ini
+ * dipakai kasir untuk cross-check struk yang sudah dia buat sendiri hari ini,
+ * TANPA membocorkan data HPP/laba (lihat dashboardController#getKasirStats
+ * untuk alasan yang sama).
+ */
+async function listMyTransactions(cashierId, limit = 20) {
+  const { rows } = await query(
+    `SELECT id, tx_code, grand_total, payment_method, created_at
+       FROM transactions
+      WHERE cashier_id = $1 AND status = 'completed'
+      ORDER BY created_at DESC
+      LIMIT $2`,
+    [cashierId, limit]
+  );
+  return rows;
+}
+
+module.exports = { checkout, listTransactions, getTransactionById, listMyTransactions };

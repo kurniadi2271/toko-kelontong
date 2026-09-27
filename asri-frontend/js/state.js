@@ -8,7 +8,8 @@ window.appState = {
   currentUser: null,        // { id, name, email, role } — diisi setelah login sukses
   storeSettings: { store_name: 'Toko Kelontong Asri', address: '' },
 
-  activeRole: 'kasir',      // 'kasir' | 'admin'
+  activeRole: null,         // 'kasir' | 'admin' | null (null = belum ada yang login)
+  pendingNavTarget: null,   // 'kasir' | 'admin' — role yang DITUJU saat modal login dibuka
   activeAdminTab: 'dashboard',
 
   products: [],              // cache katalog produk untuk halaman aktif
@@ -19,6 +20,8 @@ window.appState = {
   currentPaymentMethod: 'CASH',
   pendingCheckoutTotal: 0,
   currentReceiptData: null,
+
+  kasirRecap: { totalOmsetSayaHariIni: 0, totalTransaksiSayaHariIni: 0, transaksiTerakhir: [] },
 
   chartSalesInstance: null,
   chartCategoryInstance: null,

@@ -56,9 +56,14 @@ const restockProduct = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'Jumlah restock harus lebih dari 0.' });
   }
 
-  const product = await productService.restockProduct(req.params.id, qty);
+  const product = await productService.restockProduct(req.params.id, qty, req.user.id);
   if (!product) return res.status(404).json({ error: 'Produk tidak ditemukan.' });
   res.json(product);
+});
+
+const getProductMovements = asyncHandler(async (req, res) => {
+  const movements = await productService.getProductMovements(req.params.id);
+  res.json(movements);
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
@@ -67,4 +72,4 @@ const deleteProduct = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
-module.exports = { getProducts, getProductById, createProduct, updateProduct, restockProduct, deleteProduct };
+module.exports = { getProducts, getProductById, createProduct, updateProduct, restockProduct, deleteProduct, getProductMovements };

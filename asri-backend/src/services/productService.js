@@ -1,4 +1,5 @@
-const { query } = require('../config/db');
+const { query, getClient } = require('../config/db');
+const stockMovementService = require('./stockMovementService');
 
 const CATEGORIES = ['Makanan', 'Minuman', 'Sembako', 'Kebersihan', 'Lainnya'];
 
@@ -62,12 +63,58 @@ async function updateProduct(id, data) {
   return rows[0] || null;
 }
 
-async function restockProduct(id, qty) {
-  const { rows } = await query(
-    `UPDATE products SET stock = stock + $1 WHERE id = $2 AND is_active = TRUE RETURNING *`,
-    [qty, id]
-  );
-  return rows[0] || null;
+/**
+ * Restock cepat — dibungkus database transaction agar penambahan stok
+ * dan pencatatan audit trail (stock_movements) atomic: kalau salah satu
+ * gagal, keduanya di-ROLLBACK, stok tidak pernah "nyangkut" tanpa jejak.
+ * `userId` WAJIB diisi — bisa admin atau kasir (restock cepat dibuka untuk
+ * keduanya, lihat product.routes.js), tercatat sebagai pelaku perubahan.
+ */
+async function restockProduct(id, qty, userId) {
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+
+    const { rows } = await client.query(
+      `SELECT id, stock FROM products WHERE id = $1 AND is_active = TRUE FOR UPDATE`,
+      [id]
+    );
+    const existing = rows[0];
+    if (!existing) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+
+    const stockBefore = existing.stock;
+    const stockAfter = stockBefore + qty;
+
+    const { rows: updatedRows } = await client.query(
+      `UPDATE products SET stock = $1 WHERE id = $2 RETURNING *`,
+      [stockAfter, id]
+    );
+
+    await stockMovementService.recordMovement(client, {
+      productId: id,
+      userId,
+      movementType: 'RESTOCK',
+      qtyChange: qty,
+      stockBefore,
+      stockAfter,
+    });
+
+    await client.query('COMMIT');
+    return updatedRows[0];
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/** Riwayat pergerakan stok satu produk — dipakai admin untuk audit siapa mengubah apa. */
+async function getProductMovements(id) {
+  return stockMovementService.listByProduct(id);
 }
 
 async function softDeleteProduct(id) {
@@ -86,4 +133,5 @@ module.exports = {
   updateProduct,
   restockProduct,
   softDeleteProduct,
+  getProductMovements,
 };

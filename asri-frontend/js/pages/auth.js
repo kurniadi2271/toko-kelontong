@@ -4,7 +4,9 @@
  * panggilan nyata ke POST /api/auth/login dsb di backend.
  */
 const AuthPage = {
-  openModal() {
+  /** @param {'kasir'|'admin'} targetRole — dashboard yang DITUJU saat modal ini dibuka */
+  openModal(targetRole) {
+    appState.pendingNavTarget = targetRole;
     this.toggleView('login');
     document.getElementById('modal-admin-auth').classList.remove('hidden');
   },
@@ -30,13 +32,35 @@ const AuthPage = {
       apiAuthToken.set(token);
       appState.currentUser = user;
 
-      document.getElementById('admin-lock-icon').innerHTML = '<i class="fa-solid fa-circle-check text-green-400"></i>';
       document.getElementById('input-admin-pass').value = '';
       this.closeModal();
-      switchRole('admin');
+      this.routeAfterLogin();
     } catch (err) {
       showError(err);
     }
+  },
+
+  /**
+   * Menentukan dashboard mana yang dibuka setelah login sukses, berdasarkan
+   * ROLE AKUN (bukan sekadar tombol mana yang diklik):
+   * - role 'kasir' SELALU diarahkan ke dashboard Kasir, walau tadinya klik
+   *   tombol "Admin Panel" — kasir tidak pernah boleh melihat panel admin.
+   * - role 'admin' boleh ke dashboard Kasir ATAU Admin, sesuai tombol yang
+   *   tadi diklik (pemilik toko wajar sesekali pegang kasir sendiri).
+   */
+  routeAfterLogin() {
+    const { currentUser, pendingNavTarget } = appState;
+
+    if (currentUser.role === 'kasir') {
+      if (pendingNavTarget === 'admin') {
+        alert('Akun ini berperan sebagai Kasir dan tidak memiliki akses ke Admin Panel.');
+      }
+      switchRole('kasir');
+      return;
+    }
+
+    // role === 'admin'
+    switchRole(pendingNavTarget || 'admin');
   },
 
   async handleForgotPassword(e) {
@@ -67,8 +91,16 @@ const AuthPage = {
   logout() {
     apiAuthToken.set(null);
     appState.currentUser = null;
+    appState.activeRole = null;
+    appState.cart = []; // keranjang milik sesi sebelumnya tidak boleh terbawa ke kasir berikutnya
     document.getElementById('admin-lock-icon').innerHTML = '<i class="fa-solid fa-lock text-yellow-400"></i>';
-    switchRole('kasir');
+    document.getElementById('kasir-lock-icon').innerHTML = '<i class="fa-solid fa-lock text-yellow-400"></i>';
+    KasirPage.showLocked();
+    document.getElementById('view-admin').classList.add('hidden');
+
+    const inactiveClass = 'px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-2 text-sage-200 hover:text-white';
+    document.getElementById('nav-btn-kasir').className = inactiveClass;
+    document.getElementById('nav-btn-admin').className = inactiveClass;
   },
 };
 window.AuthPage = AuthPage;

@@ -136,3 +136,29 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Riwayat Transaksi Saya (Kasir) -->
+<div id="modal-kasir-history" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
+        <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="font-bold text-gray-800 text-base">Riwayat Transaksi Saya</h3>
+            <button onclick="KasirPage.closeHistoryModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <p class="text-[11px] text-gray-500 -mt-2">10 transaksi terakhir yang Anda proses sendiri.</p>
+        <div id="kasir-history-list" class="flex-1 overflow-y-auto space-y-2 text-xs"></div>
+    </div>
+</div>
+
+<!-- Modal Riwayat Pergerakan Stok (Admin - Audit Trail) -->
+<div id="modal-stock-history" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
+        <div class="flex justify-between items-center border-b pb-3">
+            <div>
+                <h3 class="font-bold text-gray-800 text-base">Riwayat Pergerakan Stok</h3>
+                <p id="stock-history-product-name" class="text-xs text-sage-600 font-semibold">-</p>
+            </div>
+            <button onclick="MasterBarangPage.closeHistoryModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div id="stock-history-list" class="flex-1 overflow-y-auto space-y-2 text-xs"></div>
+    </div>
+</div>

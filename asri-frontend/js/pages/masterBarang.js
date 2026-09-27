@@ -30,6 +30,7 @@ const MasterBarangPage = {
           </span>
         </td>
         <td class="p-3 text-center space-x-2">
+          <button onclick="MasterBarangPage.openHistory('${p.id}', '${p.name.replace(/'/g, "\\'")}')" class="text-gray-500 hover:text-sage-700" title="Riwayat Pergerakan Stok"><i class="fa-solid fa-clock-rotate-left"></i></button>
           <button onclick="MasterBarangPage.openModal('${p.id}')" class="text-blue-600 hover:text-blue-800"><i class="fa-solid fa-pen-to-square"></i></button>
           <button onclick="MasterBarangPage.remove('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
         </td>
@@ -108,6 +109,51 @@ const MasterBarangPage = {
     } catch (err) {
       showError(err);
     }
+  },
+
+  /**
+   * Riwayat pergerakan stok (audit trail) untuk satu produk: siapa
+   * mengurangi/menambah stok, kapan, dan lewat transaksi yang mana
+   * (lihat asri-backend GET /api/products/:id/movements).
+   */
+  async openHistory(productId, productName) {
+    document.getElementById('stock-history-product-name').innerText = productName;
+    const container = document.getElementById('stock-history-list');
+    container.innerHTML = `<p class="text-center text-gray-400 py-6">Memuat riwayat...</p>`;
+    document.getElementById('modal-stock-history').classList.remove('hidden');
+
+    try {
+      const movements = await api.products.movements(productId);
+      if (movements.length === 0) {
+        container.innerHTML = `<p class="text-center text-gray-400 py-6">Belum ada pergerakan stok tercatat.</p>`;
+        return;
+      }
+
+      const typeLabel = { SALE: 'Penjualan', RESTOCK: 'Restock', ADJUSTMENT: 'Koreksi' };
+      const typeColor = { SALE: 'text-red-600 bg-red-50', RESTOCK: 'text-green-600 bg-green-50', ADJUSTMENT: 'text-amber-600 bg-amber-50' };
+
+      container.innerHTML = movements.map((m) => `
+        <div class="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+          <div>
+            <p class="font-semibold">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${typeColor[m.movement_type]}">${typeLabel[m.movement_type]}</span>
+              ${m.qty_change > 0 ? '+' : ''}${m.qty_change} (${m.stock_before} → ${m.stock_after})
+            </p>
+            <p class="text-[10px] text-gray-500 mt-0.5">
+              oleh <span class="font-medium text-gray-700">${m.user_name}</span> · ${formatDate(m.created_at)}
+              ${m.tx_code ? ` · <span class="font-mono">${m.tx_code}</span>` : ''}
+            </p>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      container.innerHTML = `<p class="text-center text-red-400 py-6">Gagal memuat riwayat.</p>`;
+      showError(err);
+    }
+  },
+
+  closeHistoryModal() {
+    document.getElementById('modal-stock-history').classList.add('hidden');
   },
 };
 window.MasterBarangPage = MasterBarangPage;

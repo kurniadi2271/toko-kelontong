@@ -6,10 +6,59 @@
  */
 const KasirPage = {
   async init() {
+    document.getElementById('kasir-locked-screen').classList.add('hidden');
+    document.getElementById('kasir-content').classList.remove('hidden');
+
+    document.getElementById('kasir-recap-name').innerText = appState.currentUser
+      ? `${appState.currentUser.name} (${appState.currentUser.role === 'admin' ? 'Admin' : 'Kasir'})`
+      : '-';
+
     await this.loadProducts();
     this.renderCategories();
     this.render();
     this.renderCart();
+    this.loadRecap();
+  },
+
+  /** Ditampilkan saat belum ada sesi login sama sekali. */
+  showLocked() {
+    document.getElementById('kasir-locked-screen').classList.remove('hidden');
+    document.getElementById('kasir-content').classList.add('hidden');
+  },
+
+  /** Ringkasan milik kasir yang login: omset & jumlah transaksi HARI INI (tanpa laba). */
+  async loadRecap() {
+    try {
+      const recap = await api.dashboard.kasirStats();
+      appState.kasirRecap = recap;
+      document.getElementById('kasir-recap-tx-count').innerText = recap.totalTransaksiSayaHariIni;
+      document.getElementById('kasir-recap-omset').innerText = formatRp(recap.totalOmsetSayaHariIni);
+    } catch (err) {
+      console.error('[KasirPage] Gagal memuat ringkasan:', err.message);
+    }
+  },
+
+  openHistoryModal() {
+    const list = appState.kasirRecap.transaksiTerakhir || [];
+    const container = document.getElementById('kasir-history-list');
+
+    container.innerHTML = list.length === 0
+      ? `<p class="text-center text-gray-400 py-6">Belum ada transaksi.</p>`
+      : list.map((tx) => `
+        <div class="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+          <div>
+            <p class="font-mono font-bold text-[11px]">${tx.tx_code}</p>
+            <p class="text-gray-500 text-[10px]">${formatDate(tx.created_at)} · ${tx.payment_method}</p>
+          </div>
+          <span class="font-bold text-sage-700">${formatRp(tx.grand_total)}</span>
+        </div>
+      `).join('');
+
+    document.getElementById('modal-kasir-history').classList.remove('hidden');
+  },
+
+  closeHistoryModal() {
+    document.getElementById('modal-kasir-history').classList.add('hidden');
   },
 
   async loadProducts() {
@@ -262,6 +311,7 @@ const KasirPage = {
       document.getElementById('cart-discount').value = 0;
       await this.loadProducts(); // sinkronkan stok terbaru dari server
       this.render();
+      this.loadRecap(); // perbarui ringkasan omset & jumlah transaksi milik sendiri
     } catch (err) {
       showError(err); // mis. "Stok tidak mencukupi" bila kasir lain checkout duluan
     }

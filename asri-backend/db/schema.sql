@@ -119,6 +119,35 @@ CREATE INDEX idx_txdetails_transaction ON transaction_details (transaction_id);
 CREATE INDEX idx_txdetails_product     ON transaction_details (product_id);
 
 -- ------------------------------------------------------------
+-- 6. STOCK_MOVEMENTS (Audit trail setiap perubahan stok)
+-- Mencatat SIAPA (user_id) mengubah stok produk APA, kapan, dan kenapa
+-- (SALE saat checkout, RESTOCK saat restock cepat, ADJUSTMENT untuk
+-- koreksi manual di masa depan). Berbeda dari transactions.cashier_id
+-- yang hanya menjawab "siapa yang menjual", tabel ini adalah audit
+-- trail UMUM untuk semua jenis perubahan stok, termasuk restock.
+-- ------------------------------------------------------------
+CREATE TABLE stock_movements (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id      UUID REFERENCES products(id) ON DELETE SET NULL,
+    user_id         UUID NOT NULL REFERENCES users(id),
+
+    movement_type   VARCHAR(20) NOT NULL
+                        CHECK (movement_type IN ('SALE','RESTOCK','ADJUSTMENT')),
+    qty_change      INTEGER NOT NULL,   -- negatif = stok berkurang, positif = stok bertambah
+    stock_before    INTEGER NOT NULL,
+    stock_after     INTEGER NOT NULL,
+
+    reference_tx_id UUID REFERENCES transactions(id) ON DELETE SET NULL, -- diisi bila movement_type = SALE
+    note            TEXT,
+
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_stock_movements_product ON stock_movements (product_id);
+CREATE INDEX idx_stock_movements_user    ON stock_movements (user_id);
+CREATE INDEX idx_stock_movements_created ON stock_movements (created_at);
+
+-- ------------------------------------------------------------
 -- Trigger updated_at otomatis
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION trg_set_updated_at() RETURNS TRIGGER AS $$

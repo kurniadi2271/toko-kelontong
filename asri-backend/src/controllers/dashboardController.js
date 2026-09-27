@@ -2,6 +2,7 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const { asyncHandler } = require('../middleware/errorHandler');
 const dashboardService = require('../services/dashboardService');
+const transactionService = require('../services/transactionService');
 
 function formatRp(val) {
   return 'Rp ' + Number(val || 0).toLocaleString('id-ID');
@@ -131,4 +132,24 @@ const getReport = asyncHandler(async (req, res) => {
   return res.status(400).json({ error: 'Format tidak dikenal. Gunakan json, xlsx, atau pdf.' });
 });
 
-module.exports = { getStats, getReport };
+/**
+ * GET /api/dashboard/kasir-stats
+ * Versi ringkas dashboard KHUSUS untuk kasir yang sedang login: omset &
+ * jumlah transaksi miliknya sendiri hari ini, plus riwayat transaksi
+ * terakhirnya. TIDAK menyertakan HPP/laba/data kasir lain — lihat
+ * dashboardService#getCashierStatsToday untuk alasannya.
+ */
+const getKasirStats = asyncHandler(async (req, res) => {
+  const [summary, recentTx] = await Promise.all([
+    dashboardService.getCashierStatsToday(req.user.id),
+    transactionService.listMyTransactions(req.user.id, 10),
+  ]);
+
+  res.json({
+    totalOmsetSayaHariIni: Number(summary.total_omset),
+    totalTransaksiSayaHariIni: Number(summary.total_transaksi),
+    transaksiTerakhir: recentTx,
+  });
+});
+
+module.exports = { getStats, getReport, getKasirStats };

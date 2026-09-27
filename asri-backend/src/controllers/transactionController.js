@@ -41,4 +41,14 @@ const getTransactionById = asyncHandler(async (req, res) => {
   res.json(transaction);
 });
 
-module.exports = { createTransaction, getTransactions, getTransactionById };
+/**
+ * GET /api/transactions/me
+ * Riwayat transaksi milik kasir yang sedang login SAJA (untuk cross-check
+ * struk sendiri). Beda dari getTransactions() yang admin-only & lintas kasir.
+ */
+const getMyTransactions = asyncHandler(async (req, res) => {
+  const rows = await transactionService.listMyTransactions(req.user.id);
+  res.json(rows);
+});
+
+module.exports = { createTransaction, getTransactions, getTransactionById, getMyTransactions };
