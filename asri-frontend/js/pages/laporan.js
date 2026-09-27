@@ -6,7 +6,7 @@
  */
 const LaporanPage = {
   async init() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString(); // zona waktu LOKAL, bukan UTC — lihat utils.js
     document.getElementById('report-date-start').value = today;
     document.getElementById('report-date-end').value = today;
     await this.render();
@@ -15,12 +15,24 @@ const LaporanPage = {
   async render() {
     const startDate = document.getElementById('report-date-start').value;
     const endDate = document.getElementById('report-date-end').value;
+    const tbody = document.getElementById('laporan-tbody');
 
-    let rows = [];
+    let rows;
     try {
       rows = await api.transactions.list({ startDate, endDate });
     } catch (err) {
+      // PENTING: saat request gagal, JANGAN lanjut menghitung total dari
+      // array kosong — itu akan menampilkan "Tidak ada data transaksi"
+      // yang MENYESATKAN (seolah datanya memang kosong, padahal sebenarnya
+      // request-nya yang gagal). Tampilkan status error yang jelas & hentikan
+      // di sini; jangan timpa ringkasan omset/HPP/laba dengan angka 0 palsu.
+      tbody.innerHTML = `
+        <tr><td colspan="7" class="p-6 text-center text-red-500">
+          Gagal memuat data: ${err.message}<br>
+          <button onclick="LaporanPage.render()" class="mt-2 text-xs underline text-sage-600">Coba lagi</button>
+        </td></tr>`;
       showError(err);
+      return;
     }
 
     const totals = rows.reduce(
@@ -36,7 +48,6 @@ const LaporanPage = {
     document.getElementById('report-summary-hpp').innerText = formatRp(totals.hpp);
     document.getElementById('report-summary-laba').innerText = formatRp(totals.laba);
 
-    const tbody = document.getElementById('laporan-tbody');
     if (rows.length === 0) {
       tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400">Tidak ada data transaksi pada rentang tanggal ini.</td></tr>`;
       return;

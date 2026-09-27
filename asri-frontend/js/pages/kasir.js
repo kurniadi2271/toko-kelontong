@@ -61,6 +61,16 @@ const KasirPage = {
     document.getElementById('modal-kasir-history').classList.add('hidden');
   },
 
+  /** Konfirmasi sebelum logout — peringatkan bila keranjang belum di-checkout. */
+  confirmLogout() {
+    const message = appState.cart.length > 0
+      ? 'Keranjang belanja belum di-checkout dan akan hilang. Yakin ingin keluar?'
+      : 'Yakin ingin keluar dari sesi kasir ini?';
+    if (confirm(message)) {
+      AuthPage.logout();
+    }
+  },
+
   async loadProducts() {
     try {
       appState.products = await api.products.list();

@@ -7,8 +7,33 @@ const AuthPage = {
   /** @param {'kasir'|'admin'} targetRole — dashboard yang DITUJU saat modal ini dibuka */
   openModal(targetRole) {
     appState.pendingNavTarget = targetRole;
+    this.applyRoleLabels(targetRole);
     this.toggleView('login');
     document.getElementById('modal-admin-auth').classList.remove('hidden');
+    document.getElementById('input-admin-email').focus();
+  },
+
+  /**
+   * Mengganti judul, ikon, label, placeholder, dan teks tombol pada modal
+   * login supaya JELAS akun mana yang diminta — mencegah kasir salah kira
+   * harus login pakai akun admin (atau sebaliknya).
+   */
+  applyRoleLabels(targetRole) {
+    const isAdmin = targetRole === 'admin';
+
+    document.getElementById('auth-login-icon-wrap').className =
+      `w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl ${isAdmin ? 'bg-sage-100 text-sage-700' : 'bg-blue-100 text-blue-700'}`;
+    document.getElementById('auth-login-icon').className = isAdmin ? 'fa-solid fa-user-shield' : 'fa-solid fa-cash-register';
+    document.getElementById('auth-login-title').innerText = isAdmin ? 'Masuk sebagai Admin' : 'Masuk sebagai Kasir';
+    document.getElementById('auth-login-subtitle').innerText = isAdmin
+      ? 'Masukkan email & password admin untuk mengakses fitur manajemen toko (produk, laporan, pengaturan).'
+      : 'Masukkan email & password akun kasir Anda untuk mulai melayani transaksi.';
+    document.getElementById('auth-login-email-label').innerText = isAdmin ? 'Email Admin' : 'Email Kasir';
+    document.getElementById('auth-login-pass-label').innerText = isAdmin ? 'Password Admin' : 'Password Kasir';
+    document.getElementById('input-admin-email').placeholder = isAdmin ? 'admin@tokoanda.com' : 'kasir@tokoanda.com';
+    document.getElementById('auth-login-submit-btn').innerText = isAdmin ? 'Masuk sebagai Admin' : 'Masuk sebagai Kasir';
+    document.getElementById('auth-login-submit-btn').className =
+      `w-full py-2.5 text-white font-bold rounded-lg shadow transition text-sm ${isAdmin ? 'bg-sage-600 hover:bg-sage-700' : 'bg-blue-600 hover:bg-blue-700'}`;
   },
 
   closeModal() {

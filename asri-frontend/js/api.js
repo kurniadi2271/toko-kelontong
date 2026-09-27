@@ -34,11 +34,26 @@ async function request(path, { method = 'GET', body, isBlob = false } = {}) {
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (networkErr) {
+    // fetch() melempar TypeError generik "Failed to fetch" untuk SEMUA jenis
+    // kegagalan jaringan (bukan error dari backend): backend mati, localtunnel
+    // terputus/URL berubah, domain diblokir CORS, atau tidak ada koneksi
+    // internet sama sekali. Kita ganti dengan pesan yang actionable, karena
+    // "Failed to fetch" mentah tidak memberi tahu user harus ngapain.
+    console.error('[api] Network error saat memanggil', `${BASE_URL}${path}`, networkErr);
+    throw new Error(
+      `Tidak dapat terhubung ke server (${BASE_URL}). ` +
+      'Cek: (1) backend & localtunnel masih berjalan, (2) URL di js/config.js sudah sesuai URL tunnel TERBARU, ' +
+      '(3) domain frontend ini sudah didaftarkan di FRONTEND_ORIGIN pada .env backend.'
+    );
+  }
 
   if (isBlob) {
     if (!res.ok) {

@@ -41,3 +41,16 @@ function triggerBlobDownload(blob, filename) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Tanggal HARI INI dalam format YYYY-MM-DD memakai timezone LOKAL browser.
+ * SENGAJA tidak memakai `new Date().toISOString()` — itu selalu mengonversi
+ * ke UTC, sehingga dini hari WIB (UTC+7) bisa salah dihitung sebagai
+ * "kemarin" menurut UTC. Dipakai sebagai default filter tanggal Laporan.
+ */
+function getLocalDateString(date = new Date()) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
