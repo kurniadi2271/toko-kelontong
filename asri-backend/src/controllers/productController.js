@@ -19,9 +19,6 @@ const createProduct = asyncHandler(async (req, res) => {
   if (!barcode || !name || !category || !unit || costPrice == null || sellPrice == null) {
     return res.status(400).json({ error: 'Field barcode, nama, kategori, satuan, HPP, dan harga jual wajib diisi.' });
   }
-  if (!productService.CATEGORIES.includes(category)) {
-    return res.status(400).json({ error: `Kategori tidak valid. Pilihan: ${productService.CATEGORIES.join(', ')}` });
-  }
   if (Number(costPrice) < 0 || Number(sellPrice) < 0) {
     return res.status(400).json({ error: 'HPP dan harga jual tidak boleh negatif.' });
   }
@@ -29,25 +26,38 @@ const createProduct = asyncHandler(async (req, res) => {
   try {
     const product = await productService.createProduct({
       barcode, name, category, unit, costPrice, sellPrice, stock, lowStockThreshold,
-    });
+    }, req.user.id);
     res.status(201).json(product);
   } catch (err) {
     if (err.code === '23505') { // unique_violation (barcode duplikat)
       return res.status(409).json({ error: 'Barcode sudah digunakan oleh produk lain.' });
+    }
+    if (err.code === '23503') { // foreign_key_violation (kategori tidak ada)
+      return res.status(400).json({ error: 'Kategori tidak ditemukan. Tambahkan dulu lewat menu Kelola Kategori.' });
     }
     throw err;
   }
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
-  const { category } = req.body;
-  if (category && !productService.CATEGORIES.includes(category)) {
-    return res.status(400).json({ error: `Kategori tidak valid. Pilihan: ${productService.CATEGORIES.join(', ')}` });
+  const { stock, costPrice, sellPrice } = req.body;
+
+  if (stock !== undefined && stock !== null && stock !== '' && (!Number.isInteger(Number(stock)) || Number(stock) < 0)) {
+    return res.status(400).json({ error: 'Stok harus berupa bilangan bulat >= 0.' });
+  }
+  if ((costPrice != null && Number(costPrice) < 0) || (sellPrice != null && Number(sellPrice) < 0)) {
+    return res.status(400).json({ error: 'HPP dan harga jual tidak boleh negatif.' });
   }
 
-  const product = await productService.updateProduct(req.params.id, req.body);
-  if (!product) return res.status(404).json({ error: 'Produk tidak ditemukan.' });
-  res.json(product);
+  try {
+    const product = await productService.updateProduct(req.params.id, req.body, req.user.id);
+    if (!product) return res.status(404).json({ error: 'Produk tidak ditemukan.' });
+    res.json(product);
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Barcode sudah digunakan oleh produk lain.' });
+    if (err.code === '23503') return res.status(400).json({ error: 'Kategori tidak ditemukan.' });
+    throw err;
+  }
 });
 
 const restockProduct = asyncHandler(async (req, res) => {

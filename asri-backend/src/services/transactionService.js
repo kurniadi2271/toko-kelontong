@@ -119,16 +119,19 @@ async function checkout({ items, discountPct, paymentMethod, cashReceived, cashi
 }
 
 async function listTransactions({ startDate, endDate, page = 1, limit = 50 }) {
-  const conditions = ["status = 'completed'"];
+  // SEMUA kolom diberi alias `t.` karena query ini JOIN ke `users` yang juga
+  // punya kolom created_at — tanpa alias, PostgreSQL error "column reference
+  // is ambiguous" (500).
+  const conditions = ["t.status = 'completed'"];
   const params = [];
 
   if (startDate) {
     params.push(startDate);
-    conditions.push(`created_at::date >= $${params.length}`);
+    conditions.push(`t.created_at::date >= $${params.length}`);
   }
   if (endDate) {
     params.push(endDate);
-    conditions.push(`created_at::date <= $${params.length}`);
+    conditions.push(`t.created_at::date <= $${params.length}`);
   }
 
   const offset = (Number(page) - 1) * Number(limit);

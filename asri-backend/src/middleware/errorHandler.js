@@ -19,10 +19,23 @@ function notFoundHandler(req, res) {
 }
 
 function errorHandler(err, req, res, next) { // eslint-disable-line no-unused-vars
-  console.error(`[ERROR] ${req.method} ${req.originalUrl} →`, err.message);
-  console.error('[ERROR STACK]', err.stack);
+  // Kode error PostgreSQL 22P02 = format UUID/angka tidak valid pada parameter → salah input, bukan bug server.
+  if (err.code === '22P02') {
+    err.status = 400;
+    err.message = 'Parameter tidak valid.';
+  }
 
   const status = err.status || 500;
+
+  if (status >= 500) {
+    // Error server sungguhan: catat lengkap dengan stack trace.
+    console.error(`[ERROR] ${req.method} ${req.originalUrl} →`, err.message);
+    console.error('[ERROR STACK]', err.stack);
+  } else {
+    // Error "wajar" (validasi, password salah, 403, dst): cukup satu baris.
+    console.warn(`[WARN] ${req.method} ${req.originalUrl} → ${status} ${err.message}`);
+  }
+
   const message = status === 500 && process.env.NODE_ENV === 'production'
     ? 'Terjadi kesalahan pada server. (Cek terminal backend untuk detail lengkap.)'
     : err.message;

@@ -79,7 +79,7 @@ function updateLockIcons() {
 
 /** Mengelola tab di dalam Admin Panel (Dashboard, Master Barang, dst). */
 const AdminShell = {
-  tabs: ['dashboard', 'master-barang', 'stok-barang', 'laporan', 'pengaturan'],
+  tabs: ['dashboard', 'master-barang', 'stok-barang', 'laporan', 'akun', 'pengaturan'],
 
   switchTab(tabName) {
     appState.activeAdminTab = tabName;
@@ -96,6 +96,7 @@ const AdminShell = {
     if (tabName === 'master-barang') MasterBarangPage.render();
     if (tabName === 'stok-barang') StokBarangPage.render();
     if (tabName === 'laporan') LaporanPage.init();
+    if (tabName === 'akun') AkunPage.render();
     if (tabName === 'pengaturan') SettingsPage.render();
   },
 };
@@ -119,6 +120,7 @@ async function bootstrap() {
     '#component-master-barang': 'components/master-barang.html',
     '#component-stok-barang': 'components/stok-barang.html',
     '#component-laporan': 'components/laporan.html',
+    '#component-akun': 'components/akun.html',
     '#component-pengaturan': 'components/pengaturan.html',
     '#component-modals': 'components/modals.html',
   });
@@ -129,6 +131,8 @@ async function bootstrap() {
 
   // 3. Ambil identitas toko (dipakai header & struk) — endpoint publik untuk kasir
   await SettingsPage.render();
+
+  KasirPage.installGlobalScanCapture();
 
   // 4. Defaultnya kedua dashboard terkunci; Admin Panel selalu mulai tersembunyi.
   KasirPage.showLocked();

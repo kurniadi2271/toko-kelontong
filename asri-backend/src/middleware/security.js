@@ -57,6 +57,11 @@ const globalRateLimiter = rateLimit({
  * mungkin tersimpan di DB lalu dirender di frontend (stored XSS),
  * misal pada field nama produk atau nama toko.
  */
+// Field rahasia TIDAK boleh disanitasi: sanitize-html mengubah karakter seperti
+// "&" jadi "&amp;" dan menghapus "<...>", sehingga password bisa "berubah diam-diam".
+// Password aman dari XSS karena hanya di-hash (bcrypt) dan tidak pernah dirender.
+const RAW_FIELDS = new Set(['password', 'newPassword', 'currentPassword', 'token']);
+
 function sanitizeValue(value) {
   if (typeof value === 'string') {
     return sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} }).trim();
@@ -67,7 +72,7 @@ function sanitizeValue(value) {
   if (value && typeof value === 'object') {
     const clean = {};
     for (const key of Object.keys(value)) {
-      clean[key] = sanitizeValue(value[key]);
+      clean[key] = RAW_FIELDS.has(key) ? value[key] : sanitizeValue(value[key]);
     }
     return clean;
   }

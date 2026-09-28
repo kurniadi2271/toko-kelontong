@@ -124,6 +124,23 @@ const api = {
     },
   },
 
+  // ---------- USERS (manajemen akun, admin only) ----------
+  users: {
+    list: () => request('/users'),
+    create: (payload) => request('/users', { method: 'POST', body: payload }),
+    update: (id, payload) => request(`/users/${id}`, { method: 'PUT', body: payload }),
+    setActive: (id, isActive) => request(`/users/${id}/status`, { method: 'PATCH', body: { isActive } }),
+    resetPassword: (id, newPassword) => request(`/users/${id}/password`, { method: 'PATCH', body: { newPassword } }),
+  },
+
+  // ---------- CATEGORIES ----------
+  categories: {
+    list: () => request('/categories'),
+    create: (name) => request('/categories', { method: 'POST', body: { name } }),
+    rename: (id, name) => request(`/categories/${id}`, { method: 'PUT', body: { name } }),
+    remove: (id) => request(`/categories/${id}`, { method: 'DELETE' }),
+  },
+
   // ---------- SETTINGS ----------
   settings: {
     getStore: () => request('/settings/store'),

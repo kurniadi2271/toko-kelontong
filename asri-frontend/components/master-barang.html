@@ -4,9 +4,14 @@
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
             <input type="text" id="master-search" oninput="MasterBarangPage.render()" placeholder="Cari nama barang / barcode..." class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500">
         </div>
-        <button onclick="MasterBarangPage.openModal()" class="w-full sm:w-auto px-4 py-2 bg-sage-600 text-white rounded-lg text-xs font-bold hover:bg-sage-700 transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-plus"></i> Tambah Produk Baru
-        </button>
+        <div class="flex gap-2 w-full sm:w-auto">
+            <button onclick="MasterBarangPage.openCategoryModal()" class="flex-1 sm:flex-none px-4 py-2 bg-white border border-sage-600 text-sage-700 rounded-lg text-xs font-bold hover:bg-sage-50 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-tags"></i> Kelola Kategori
+            </button>
+            <button onclick="MasterBarangPage.openModal()" class="flex-1 sm:flex-none px-4 py-2 bg-sage-600 text-white rounded-lg text-xs font-bold hover:bg-sage-700 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plus"></i> Tambah Produk Baru
+            </button>
+        </div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
@@ -48,13 +53,7 @@
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Kategori</label>
-                    <select id="prod-category" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500">
-                        <option value="Makanan">Makanan</option>
-                        <option value="Minuman">Minuman</option>
-                        <option value="Sembako">Sembako</option>
-                        <option value="Kebersihan">Kebersihan</option>
-                        <option value="Lainnya">Lainnya</option>
-                    </select>
+                    <select id="prod-category" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500"></select>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Satuan</label>
@@ -72,13 +71,31 @@
                 </div>
             </div>
             <div>
-                <label class="block font-semibold text-gray-700 mb-1">Jumlah Stok Awal</label>
-                <input type="number" id="prod-stock" required min="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500">
+                <label id="prod-stock-label" class="block font-semibold text-gray-700 mb-1">Jumlah Stok Awal</label>
+                <input type="number" id="prod-stock" required min="0" step="1" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500">
+                <p id="prod-stock-hint" class="text-[10px] text-amber-600 mt-1 hidden">Mengubah angka stok dicatat sebagai koreksi manual (siapa &amp; dari berapa ke berapa) di Riwayat Pergerakan Stok. Untuk menambah stok dari supplier, gunakan Restock Cepat.</p>
             </div>
             <div class="pt-3 flex justify-end gap-2 border-t">
                 <button type="button" onclick="MasterBarangPage.closeModal()" class="px-4 py-2 border rounded-lg font-medium text-gray-600 hover:bg-gray-100">Batal</button>
                 <button type="submit" class="px-5 py-2 bg-sage-600 text-white font-bold rounded-lg hover:bg-sage-700 shadow">Simpan Produk</button>
             </div>
         </form>
+    </div>
+</div>
+
+
+<!-- Modal Kelola Kategori -->
+<div id="modal-categories" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="font-bold text-gray-800 text-base">Kelola Kategori Barang</h3>
+            <button onclick="MasterBarangPage.closeCategoryModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form onsubmit="MasterBarangPage.addCategory(event)" class="flex gap-2 text-xs">
+            <input type="text" id="new-category-name" required minlength="2" maxlength="50" placeholder="Nama kategori baru, mis. Snack" class="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage-500">
+            <button type="submit" class="px-4 py-2 bg-sage-600 text-white font-bold rounded-lg hover:bg-sage-700"><i class="fa-solid fa-plus"></i> Tambah</button>
+        </form>
+        <div id="category-list" class="flex-1 overflow-y-auto space-y-2 text-xs"></div>
+        <p class="text-[10px] text-gray-400">Mengganti nama kategori otomatis memperbarui semua produk di dalamnya. Kategori yang masih dipakai produk tidak bisa dihapus.</p>
     </div>
 </div>

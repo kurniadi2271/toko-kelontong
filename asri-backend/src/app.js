@@ -11,6 +11,8 @@ const productRoutes = require('./routes/product.routes');
 const transactionRoutes = require('./routes/transaction.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const settingsRoutes = require('./routes/settings.routes');
+const userRoutes = require('./routes/user.routes');
+const categoryRoutes = require('./routes/category.routes');
 
 const app = express();
 
@@ -38,6 +40,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/categories', categoryRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

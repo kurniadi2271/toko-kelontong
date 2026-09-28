@@ -18,6 +18,91 @@ const KasirPage = {
     this.render();
     this.renderCart();
     this.loadRecap();
+    this.focusSearch();
+  },
+
+  // ---------- SCAN BARCODE ----------
+  /**
+   * Cara kerja scanner: scanner barcode USB/Bluetooth berperilaku seperti
+   * KEYBOARD — ia "mengetik" angka barcode dengan sangat cepat lalu menekan
+   * Enter. Jadi tidak butuh driver/library khusus; yang penting kolom
+   * pencarian ini sedang fokus.
+   *
+   * Saat Enter ditekan:
+   *  1. Cocok PERSIS dengan satu barcode → langsung masuk keranjang (qty +1),
+   *     kolom dikosongkan & tetap fokus untuk scan berikutnya.
+   *  2. Tidak ada barcode persis, tapi hasil filter tinggal 1 produk → produk itu ditambahkan
+   *     (praktis saat mengetik nama manual).
+   *  3. Selain itu → pesan "tidak ditemukan"/"pilih salah satu".
+   */
+  handleSearchKey(e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+
+    const input = e.target;
+    const code = input.value.trim().toLowerCase();
+    if (!code) return;
+
+    let product = appState.products.find((p) => p.barcode.toLowerCase() === code);
+    if (!product) {
+      const matches = appState.products.filter((p) =>
+        p.name.toLowerCase().includes(code) || p.barcode.toLowerCase().includes(code));
+      if (matches.length === 1) {
+        product = matches[0];
+      } else {
+        this.showScanFeedback(matches.length === 0 ? `Barcode/produk "${input.value.trim()}" tidak ditemukan` : 'Ada beberapa hasil — klik produk yang dimaksud', false);
+        input.select();
+        return;
+      }
+    }
+
+    if (product.stock <= 0) {
+      this.showScanFeedback(`Stok "${product.name}" habis`, false);
+      input.select();
+      return;
+    }
+
+    const inCart = appState.cart.find((i) => i.id === product.id);
+    if (inCart && inCart.qty + 1 > product.stock) {
+      this.showScanFeedback(`Stok "${product.name}" tidak mencukupi`, false);
+      input.select();
+      return;
+    }
+
+    this.addToCart(product.id);
+    this.showScanFeedback(`✓ ${product.name} ditambahkan`, true);
+    input.value = '';
+    this.render();
+    input.focus();
+  },
+
+  showScanFeedback(message, ok) {
+    const el = document.getElementById('kasir-scan-feedback');
+    el.innerText = message;
+    el.className = `absolute left-1 top-full mt-1 text-[11px] font-semibold z-10 ${ok ? 'text-green-600' : 'text-red-500'}`;
+    clearTimeout(this._feedbackTimer);
+    this._feedbackTimer = setTimeout(() => el.classList.add('hidden'), 2500);
+  },
+
+  focusSearch() {
+    const el = document.getElementById('kasir-search');
+    if (el && !document.getElementById('kasir-content').classList.contains('hidden')) el.focus();
+  },
+
+  /**
+   * Tangkap ketikan scanner walau fokus sedang tidak di kolom pencarian
+   * (mis. setelah menutup struk): karakter pertama memindahkan fokus ke kolom
+   * pencarian sehingga sisa digit barcode tidak hilang. Tidak aktif saat ada
+   * modal terbuka atau fokus sedang di input/select/textarea lain.
+   */
+  installGlobalScanCapture() {
+    document.addEventListener('keydown', (e) => {
+      if (appState.activeRole !== 'kasir') return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+      if (document.querySelector('[id^="modal-"]:not(.hidden)')) return;
+      this.focusSearch();
+    });
   },
 
   /** Ditampilkan saat belum ada sesi login sama sekali. */
@@ -237,6 +322,7 @@ const KasirPage = {
 
   closeCheckoutModal() {
     document.getElementById('modal-checkout').classList.add('hidden');
+    this.focusSearch();
   },
 
   setPaymentMethod(method) {
@@ -353,6 +439,7 @@ const KasirPage = {
 
   closeReceiptModal() {
     document.getElementById('modal-receipt').classList.add('hidden');
+    this.focusSearch();
   },
 };
 window.KasirPage = KasirPage;

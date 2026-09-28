@@ -3,6 +3,7 @@
  */
 const MasterBarangPage = {
   products: [],
+  categories: [],
 
   async render() {
     try {
@@ -38,17 +39,31 @@ const MasterBarangPage = {
     `).join('');
   },
 
-  openModal(editId = null) {
-    const modal = document.getElementById('modal-product');
-    const title = document.getElementById('modal-product-title');
+  async loadCategories() {
+    try {
+      this.categories = await api.categories.list();
+    } catch (err) {
+      showError(err);
+    }
+  },
 
-    if (editId) {
+  async openModal(editId = null) {
+    await this.loadCategories();
+    const select = document.getElementById('prod-category');
+    select.innerHTML = this.categories.map((c) => `<option value="${c.name}">${c.name}</option>`).join('');
+
+    const title = document.getElementById('modal-product-title');
+    const isEdit = Boolean(editId);
+    document.getElementById('prod-stock-label').innerText = isEdit ? 'Stok Saat Ini (koreksi manual)' : 'Jumlah Stok Awal';
+    document.getElementById('prod-stock-hint').classList.toggle('hidden', !isEdit);
+
+    if (isEdit) {
       const p = this.products.find((prod) => prod.id === editId);
       title.innerText = 'Edit Produk';
       document.getElementById('prod-id').value = p.id;
       document.getElementById('prod-barcode').value = p.barcode;
       document.getElementById('prod-name').value = p.name;
-      document.getElementById('prod-category').value = p.category;
+      select.value = p.category;
       document.getElementById('prod-unit').value = p.unit;
       document.getElementById('prod-cost').value = p.cost_price;
       document.getElementById('prod-price').value = p.sell_price;
@@ -63,7 +78,7 @@ const MasterBarangPage = {
       document.getElementById('prod-price').value = '';
       document.getElementById('prod-stock').value = 10;
     }
-    modal.classList.remove('hidden');
+    document.getElementById('modal-product').classList.remove('hidden');
   },
 
   closeModal() {
@@ -143,12 +158,76 @@ const MasterBarangPage = {
               oleh <span class="font-medium text-gray-700">${m.user_name}</span> · ${formatDate(m.created_at)}
               ${m.tx_code ? ` · <span class="font-mono">${m.tx_code}</span>` : ''}
             </p>
+            ${m.note ? `<p class="text-[10px] text-gray-400 italic">${m.note}</p>` : ''}
           </div>
         </div>
       `).join('');
     } catch (err) {
       container.innerHTML = `<p class="text-center text-red-400 py-6">Gagal memuat riwayat.</p>`;
       showError(err);
+    }
+  },
+
+  // ---------- KELOLA KATEGORI ----------
+  async openCategoryModal() {
+    document.getElementById('modal-categories').classList.remove('hidden');
+    await this.renderCategories();
+  },
+
+  closeCategoryModal() {
+    document.getElementById('modal-categories').classList.add('hidden');
+  },
+
+  async renderCategories() {
+    await this.loadCategories();
+    document.getElementById('category-list').innerHTML = this.categories.map((c) => `
+      <div class="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+        <div>
+          <span class="font-semibold text-gray-800">${c.name}</span>
+          <span class="text-[10px] text-gray-500 ml-1">${c.product_count} produk</span>
+        </div>
+        <div class="space-x-2">
+          <button onclick="MasterBarangPage.renameCategory('${c.id}')" class="text-blue-600 hover:text-blue-800" title="Ganti nama"><i class="fa-solid fa-pen"></i></button>
+          <button onclick="MasterBarangPage.deleteCategory('${c.id}')" class="text-red-500 hover:text-red-700" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  async addCategory(e) {
+    e.preventDefault();
+    const input = document.getElementById('new-category-name');
+    try {
+      await api.categories.create(input.value.trim());
+      input.value = '';
+      await this.renderCategories();
+    } catch (err) {
+      showError(err);
+    }
+  },
+
+  async renameCategory(id) {
+    const cat = this.categories.find((c) => c.id === id);
+    const name = prompt('Nama baru untuk kategori ini:', cat.name);
+    if (!name || name.trim() === cat.name) return;
+    try {
+      await api.categories.rename(id, name.trim());
+      await this.renderCategories();
+      await this.render();
+      await KasirPage.loadProducts();
+    } catch (err) {
+      showError(err);
+    }
+  },
+
+  async deleteCategory(id) {
+    const cat = this.categories.find((c) => c.id === id);
+    if (!confirm(`Hapus kategori "${cat.name}"?`)) return;
+    try {
+      await api.categories.remove(id);
+      await this.renderCategories();
+    } catch (err) {
+      showError(err); // mis. "Kategori masih dipakai produk..."
     }
   },
 
