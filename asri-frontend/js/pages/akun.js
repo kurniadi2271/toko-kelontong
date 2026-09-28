@@ -1,5 +1,6 @@
 /**
- * pages/akun.js — Manajemen akun kasir & admin (admin only).
+ * pages/akun.js — Manajemen akun KASIR (dibuka admin). Akun admin sengaja tidak
+ * ditampilkan/dikelola di sini; admin mengganti password sendiri lewat tab Pengaturan.
  * "Hapus" akun = NONAKTIFKAN: transaksi lama merujuk ke akun ini, jadi
  * baris user tidak pernah benar-benar dihapus (riwayat & laporan tetap utuh).
  */
@@ -14,16 +15,16 @@ const AkunPage = {
       return;
     }
 
-    const myId = appState.currentUser && appState.currentUser.id;
-    document.getElementById('akun-tbody').innerHTML = this.users.map((u) => {
-      const isMe = u.id === myId;
-      return `
+    const tbody = document.getElementById('akun-tbody');
+    if (this.users.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">Belum ada akun kasir. Klik "Tambah Kasir" untuk membuat.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.users.map((u) => `
         <tr class="hover:bg-gray-50 ${u.is_active ? '' : 'opacity-60'}">
-          <td class="p-3 font-bold">${u.name}${isMe ? ' <span class="text-[10px] text-sage-600 font-semibold">(Anda)</span>' : ''}</td>
+          <td class="p-3 font-bold">${u.name}</td>
           <td class="p-3">${u.email}</td>
-          <td class="p-3 text-center">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.role === 'admin' ? 'bg-sage-100 text-sage-700' : 'bg-blue-100 text-blue-700'}">${u.role === 'admin' ? 'Admin' : 'Kasir'}</span>
-          </td>
           <td class="p-3 text-center">
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${u.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}">${u.is_active ? 'Aktif' : 'Nonaktif'}</span>
           </td>
@@ -31,17 +32,16 @@ const AkunPage = {
           <td class="p-3 text-center space-x-2 whitespace-nowrap">
             <button onclick="AkunPage.openModal('${u.id}')" class="text-blue-600 hover:text-blue-800" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
             <button onclick="AkunPage.openResetModal('${u.id}')" class="text-amber-600 hover:text-amber-800" title="Reset password"><i class="fa-solid fa-key"></i></button>
-            ${isMe ? '' : (u.is_active
+            ${u.is_active
               ? `<button onclick="AkunPage.toggleActive('${u.id}', false)" class="text-red-500 hover:text-red-700" title="Nonaktifkan"><i class="fa-solid fa-user-slash"></i></button>`
-              : `<button onclick="AkunPage.toggleActive('${u.id}', true)" class="text-green-600 hover:text-green-800" title="Aktifkan kembali"><i class="fa-solid fa-user-check"></i></button>`)}
+              : `<button onclick="AkunPage.toggleActive('${u.id}', true)" class="text-green-600 hover:text-green-800" title="Aktifkan kembali"><i class="fa-solid fa-user-check"></i></button>`}
           </td>
-        </tr>`;
-    }).join('');
+        </tr>`).join('');
   },
 
   openModal(editId = null) {
     const isEdit = Boolean(editId);
-    document.getElementById('modal-akun-title').innerText = isEdit ? 'Edit Akun' : 'Tambah Akun';
+    document.getElementById('modal-akun-title').innerText = isEdit ? 'Edit Kasir' : 'Tambah Kasir';
     document.getElementById('akun-id').value = editId || '';
     document.getElementById('akun-password-wrap').classList.toggle('hidden', isEdit);
     document.getElementById('akun-password').required = !isEdit;
@@ -50,11 +50,9 @@ const AkunPage = {
       const u = this.users.find((x) => x.id === editId);
       document.getElementById('akun-name').value = u.name;
       document.getElementById('akun-email').value = u.email;
-      document.getElementById('akun-role').value = u.role;
     } else {
       document.getElementById('akun-name').value = '';
       document.getElementById('akun-email').value = '';
-      document.getElementById('akun-role').value = 'kasir';
       document.getElementById('akun-password').value = '';
     }
     document.getElementById('modal-akun').classList.remove('hidden');
@@ -70,7 +68,6 @@ const AkunPage = {
     const payload = {
       name: document.getElementById('akun-name').value,
       email: document.getElementById('akun-email').value,
-      role: document.getElementById('akun-role').value,
     };
 
     try {

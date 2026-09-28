@@ -41,14 +41,28 @@ INSERT INTO store_settings (id, store_name, address)
 VALUES (1, 'Toko Kelontong Asri', 'Jl. Asri Sejahtera No. 123, Kota Kita');
 
 -- ------------------------------------------------------------
+-- 3a. CATEGORIES (kategori barang, dikelola admin)
+-- ------------------------------------------------------------
+CREATE TABLE categories (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name       VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO categories (name) VALUES
+('Makanan'), ('Minuman'), ('Sembako'), ('Kebersihan'), ('Lainnya');
+
+-- ------------------------------------------------------------
 -- 3. PRODUCTS (Master Barang)
 -- ------------------------------------------------------------
 CREATE TABLE products (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     barcode             VARCHAR(64) NOT NULL UNIQUE,
     name                VARCHAR(200) NOT NULL,
-    category            VARCHAR(30) NOT NULL
-                             CHECK (category IN ('Makanan','Minuman','Sembako','Kebersihan','Lainnya')),
+    -- FK ke categories(name): ganti nama kategori otomatis ikut ter-update di
+    -- semua produk (ON UPDATE CASCADE); kategori yang masih dipakai produk
+    -- TIDAK bisa dihapus (default RESTRICT).
+    category            VARCHAR(50) NOT NULL REFERENCES categories(name) ON UPDATE CASCADE,
     unit                VARCHAR(30) NOT NULL,           -- satuan: Pcs, Bks, Karton, dll
     cost_price          NUMERIC(14,2) NOT NULL CHECK (cost_price >= 0),   -- HPP saat ini (bisa berubah)
     sell_price          NUMERIC(14,2) NOT NULL CHECK (sell_price >= 0),   -- Harga jual saat ini
