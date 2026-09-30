@@ -34,6 +34,10 @@ git push -u origin main
 `.gitignore` di root sudah mengecualikan `node_modules/` dan `.env` asli —
 jangan pernah commit file `.env` yang berisi password/secret sungguhan.
 
+## Dokumen SIT
+
+Template dokumentasi System Integration Testing (SIT) tersedia di [SIT_Documentation_Template.xlsx](https://docs.google.com/spreadsheets/d/1ZYsAGYcesJtK0KXgWRWuPXn1wLPa1iyi/edit?usp=drive_link&ouid=102556497230646308513&rtpof=true&sd=true).
+
 ---
 
 ## 2. Jalankan Backend Lokal + Ekspos dengan localtunnel

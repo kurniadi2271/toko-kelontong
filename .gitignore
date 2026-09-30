@@ -20,3 +20,6 @@ npm-debug.log*
 
 # Database dump lokal (jika ada)
 *.sql.bak
+
+#SIT Documentation
+.xlsx
