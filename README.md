@@ -1,4 +1,4 @@
-# Sistem Kasir & Manajemen Toko Kelontong Asri (Monorepo)
+# Sistem Kasir & Manajemen Supermarket
 
 Repo ini berisi dua proyek terpisah dalam satu repository:
 

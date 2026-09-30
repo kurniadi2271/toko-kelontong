@@ -42,7 +42,7 @@ Backend akan berjalan di `http://localhost:4000`, cek `GET /health`.
    ```sql
    -- Generate hash bcrypt via: node -e "console.log(require('bcrypt').hashSync('PasswordAndaSendiri', 12))"
    INSERT INTO users (name, email, password_hash, role)
-   VALUES ('Nama Anda', 'admin@tokoanda.com', '<hasil_bcrypt_hash>', 'admin');
+   VALUES ('Nama Anda', 'admin@gmail.com', '<hasil_bcrypt_hash>', 'admin');
    ```
 5. Salin **Connection String** dari `Project Settings > Database > Connection string > URI` ke `DATABASE_URL` pada `.env`. Gunakan mode **Transaction Pooler** (port 6543) bila backend dideploy di platform serverless.
 

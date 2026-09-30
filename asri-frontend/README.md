@@ -1,4 +1,4 @@
-# Frontend — Sistem Kasir & Manajemen Toko Kelontong Asri
+# Frontend — Sistem Kasir & Manajemen Supermarket XYZ
 
 Frontend statis (HTML/CSS/JS murni, tanpa build tool) yang berkomunikasi dengan
 `asri-backend` lewat REST API.
